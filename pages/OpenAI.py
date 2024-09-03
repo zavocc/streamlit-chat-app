@@ -1,4 +1,5 @@
-from core.ai.excerpts import ExcerptsSlash
+from core.ai.excerpts import ExcerptsOpenAISlash
+from core.ai.reusables import SideBar
 import streamlit as st
 import base64
 import json
@@ -21,20 +22,13 @@ if "session_info" not in st.session_state:
 with open("data/assistants.yaml", "r") as _sysprompt:
     system_prompt = yaml.safe_load(_sysprompt)
 
-
-with st.sidebar:
-    st.session_state.session_info.update({"model": st.selectbox('Select Model', [
-    "gpt-4o-2024-08-06",
-    "gpt-4o-mini",
-    "gpt-4-turbo-2024-04-09"
-    ])})
-
-    # Image upload as context
-    _camera_mode = st.toggle("Use Camera?", value=False)
-    if _camera_mode is False:
-        uploaded_file = st.file_uploader("Jakey can read files, upload files to be added in context.", type=["png"], accept_multiple_files=True)
-    else:
-        uploaded_file = st.camera_input("Jakey can see your surroundings, take a photo to be added in context.")
+# Sidebar
+_sb = SideBar()
+_sb.sidebar(models=[
+            "gpt-4o-2024-08-06",
+            "gpt-4o-mini",
+            "gpt-4-turbo-2024-04-09"
+            ])
 
 # Initiate client
 _client = openai.Client()
@@ -45,7 +39,7 @@ _prompt = st.chat_input("Ask me anything, use /reset to reset chat history", max
 if _prompt:
     if _prompt.startswith("/"):
         # Excerpts
-        _excerpts = ExcerptsSlash(st.session_state)
+        _excerpts = ExcerptsOpenAISlash(st.session_state)
         __command = _prompt.split(" ")[0].replace("/","")
 
         # Execute
@@ -67,8 +61,8 @@ if _prompt:
 
     # If image is uploaded, append image to chat history
     _image_data = []
-    if uploaded_file and not _camera_mode:
-        for _files in uploaded_file:
+    if _sb.uploaded_file and not _sb.camera_mode:
+        for _files in _sb.uploaded_file:
             # Max files is 8
             if len(_image_data) >= 8:
                 st.toast("Max files is 8! Please remove some files.")
@@ -87,7 +81,7 @@ if _prompt:
                     ],
                 }
             ]
-    elif uploaded_file and _camera_mode:
+    elif _sb.uploaded_file and _sb.camera_mode:
         _image_data = [
                 {
                     "role": "user",
@@ -95,7 +89,7 @@ if _prompt:
                         {
                             "type": "image_url",
                             "image_url": {
-                                "url": f"data:image/png;base64,{base64.b64encode(uploaded_file.getvalue()).decode('utf-8')}",
+                                "url": f"data:image/png;base64,{base64.b64encode(_sb.uploaded_file.getvalue()).decode('utf-8')}",
                             },
                         },
                     ],

@@ -1,5 +1,5 @@
 import inspect
-class ExcerptsSlash:
+class ExcerptsOpenAISlash:
     def __init__(self, state):
         self.state = state
 

@@ -16,5 +16,5 @@ Chat with models:
 """
 )
 
-if st.button(label="OpenAI's ChatGPT-4o"):
+if st.button(label="OpenAI's ChatGPT"):
     st.switch_page("pages/OpenAI.py")

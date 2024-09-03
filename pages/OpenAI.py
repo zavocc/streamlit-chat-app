@@ -71,7 +71,7 @@ if _prompt:
         for _files in uploaded_file:
             # Max files is 8
             if len(_image_data) >= 8:
-                st.write("Max files is 8! Please remove some files.")
+                st.toast("Max files is 8! Please remove some files.")
                 break
 
             _image_data += [

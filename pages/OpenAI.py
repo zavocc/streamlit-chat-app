@@ -1,4 +1,4 @@
-from core.ai.excerpts import ExcerptsSlash
+from core.ai.excerpts.openai import ExcerptsSlash
 from core.ai.reusables import SideBar
 import streamlit as st
 import base64

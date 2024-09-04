@@ -46,6 +46,3 @@ class ExcerptsSlash:
         )
 
         return "<terminate>"
-    
-class ExcerptsGeminiSlash:
-    pass

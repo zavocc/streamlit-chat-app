@@ -1,4 +1,4 @@
-from core.ai.excerpts import ExcerptsOpenAISlash
+from core.ai.excerpts import ExcerptsSlash
 from core.ai.reusables import SideBar
 import streamlit as st
 import base64
@@ -12,8 +12,8 @@ st.set_page_config(
 )
 
 # session state containg model and chat history
-if "session_info" not in st.session_state:
-    st.session_state.session_info = {
+if "session_info_openai" not in st.session_state:
+    st.session_state["session_info_openai"] = {
         "model": None,
         "chat_history": []
     }
@@ -24,11 +24,21 @@ with open("data/assistants.yaml", "r") as _sysprompt:
 
 # Sidebar
 _sb = SideBar()
-_sb.sidebar(models=[
+_sb.sidebar(provider="openai", models=[
             "gpt-4o-2024-08-06",
             "gpt-4o-mini",
             "gpt-4-turbo-2024-04-09"
             ])
+
+# Display chat history from session state, if not empty
+if len(st.session_state["session_info_openai"]["chat_history"]) > 0:
+    for message in st.session_state["session_info_openai"]["chat_history"]:
+        if message["role"] == "user":
+            with st.chat_message("user"):
+                st.markdown(message["content"][0]["text"])
+        else:
+            with st.chat_message("assistant"):
+                st.markdown(message["content"][0]["text"])
 
 # Initiate client
 _client = openai.Client()
@@ -39,7 +49,7 @@ _prompt = st.chat_input("Ask me anything, use /reset to reset chat history", max
 if _prompt:
     if _prompt.startswith("/"):
         # Excerpts
-        _excerpts = ExcerptsOpenAISlash(st.session_state)
+        _excerpts = ExcerptsSlash(provider="openai", state=st.session_state)
         __command = _prompt.split(" ")[0].replace("/","")
 
         # Execute
@@ -49,7 +59,7 @@ if _prompt:
                 st.rerun()
 
     # Append user prompt to chat history
-    st.session_state.session_info["chat_history"].append({
+    st.session_state["session_info_openai"]["chat_history"].append({
         "role": "user",
         "content": [
             {
@@ -95,10 +105,14 @@ if _prompt:
                     ],
                 }
             ]
+        
+    # Send message through UI
+    with st.chat_message("user"):
+        st.markdown(_prompt)
 
     # Get response from OpenAI
     _response = _client.chat.completions.create(
-            model=st.session_state.session_info["model"],
+            model=st.session_state["session_info_openai"]["model"],
             messages=[
                 {
                     "role": "system",
@@ -109,7 +123,7 @@ if _prompt:
                         }
                     ]
                 },
-            ] + st.session_state.session_info["chat_history"] + _image_data,
+            ] + st.session_state["session_info_openai"]["chat_history"] + _image_data,
             temperature=1,
             max_tokens=1024,
             top_p=1,
@@ -121,7 +135,7 @@ if _prompt:
         )
 
     # Append response to chat history
-    st.session_state.session_info["chat_history"].append(
+    st.session_state["session_info_openai"]["chat_history"].append(
         {
             "role": "assistant",
             "content": [
@@ -133,21 +147,15 @@ if _prompt:
         }
     )
 
-# Display chat history from session state, if not empty
-if st.session_state.session_info["chat_history"]:
-    for message in st.session_state.session_info["chat_history"]:
-        if message["role"] == "user":
-            with st.chat_message("user"):
-                st.markdown(message["content"][0]["text"])
-        else:
-            with st.chat_message("assistant"):
-                st.markdown(message["content"][0]["text"])
+    # Send message through UI
+    with st.chat_message("assistant"):
+        st.markdown(_response.choices[0].message.content)
 
 # Post chat controls
 with st.sidebar:
     # Export conversation as JSON
-    if len(st.session_state.session_info["chat_history"]) > 0:
-        _jsonized = json.dumps(st.session_state.session_info["chat_history"], indent=4)
+    if len(st.session_state["session_info_openai"]["chat_history"]) > 0:
+        _jsonized = json.dumps(st.session_state["session_info_openai"]["chat_history"], indent=4)
         st.write("Export conversation as JSON")
         st.download_button(
             label="Export conversation",

@@ -3,9 +3,9 @@ class SideBar:
     def __init__(self):
         self.uploaded_file = None
 
-    def sidebar(self, models):
+    def sidebar(self, provider, models):
         with st.sidebar:
-            st.session_state.session_info.update({"model": st.selectbox('Select Model', models)})
+            st.session_state[f"session_info_{provider}"].update({"model": st.selectbox('Select Model', models)})
 
             # Image upload as context
             self.camera_mode = st.toggle("Use Camera?", value=False)

@@ -1,14 +1,15 @@
 import inspect
-class ExcerptsOpenAISlash:
-    def __init__(self, state):
+class ExcerptsSlash:
+    def __init__(self, provider, state):
         self.state = state
+        self.provider = provider
 
     def reset(self):
-        self.state.session_info["chat_history"] = []
+        self.state[f"session_info_{self.provider}"]["chat_history"] = []
         return "<terminate>"
 
     def files(self):
-        self.state.session_info["chat_history"].append(
+        self.state[f"session_info_{self.provider}"]["chat_history"].append(
             {
                 "role": "user",
                 "content": [
@@ -20,7 +21,7 @@ class ExcerptsOpenAISlash:
             }
         )
 
-        self.state.session_info["chat_history"].append(
+        self.state[f"session_info_{self.provider}"]["chat_history"].append(
             {
                 "role": "assistant",
                 "content": [
@@ -45,3 +46,6 @@ class ExcerptsOpenAISlash:
         )
 
         return "<terminate>"
+    
+class ExcerptsGeminiSlash:
+    pass

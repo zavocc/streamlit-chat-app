@@ -124,15 +124,19 @@ if _prompt:
                     ]
                 },
             ] + st.session_state["session_info_openai"]["chat_history"] + _image_data,
-            temperature=1,
-            max_tokens=1024,
-            top_p=1,
+            temperature=_sb.temperature,
+            max_tokens=_sb.max_tokens,
+            top_p=_sb.top_p,
             frequency_penalty=0,
             presence_penalty=0,
             response_format={
                 "type": "text"
             }
         )
+    
+    # Send message through UI
+    with st.chat_message("assistant"):
+        st.markdown(_response.choices[0].message.content)
 
     # Append response to chat history
     st.session_state["session_info_openai"]["chat_history"].append(
@@ -146,10 +150,6 @@ if _prompt:
             ]
         }
     )
-
-    # Send message through UI
-    with st.chat_message("assistant"):
-        st.markdown(_response.choices[0].message.content)
 
 # Post chat controls
 with st.sidebar:

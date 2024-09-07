@@ -123,7 +123,7 @@ if _prompt:
                         }
                     ]
                 },
-            ] + st.session_state["session_info_openai"]["chat_history"] + _image_data,
+            ] + st.session_state["session_info_openai"]["chat_history"] + _image_data + st.session_state["session_info_openai"]["chat_history"] ,
             temperature=_sb.temperature,
             max_tokens=_sb.max_tokens,
             top_p=_sb.top_p,
